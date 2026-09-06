@@ -1,4 +1,4 @@
-import { app, Menu, Tray, nativeImage } from "electron";
+import { app, Menu, Tray, nativeImage, type NativeImage } from "electron";
 import path from "node:path";
 import { listPets, removePet } from "./store";
 import { openOnboardingWindow } from "./onboardingWindow";
@@ -7,12 +7,22 @@ import { openPetWindow, closePetWindow, isPetWindowOpen } from "./petWindowManag
 
 let tray: Tray | null = null;
 
-function loadTrayIcon() {
-  const iconPath = path.join(__dirname, "../../build/trayIcon.png");
-  const image = nativeImage.createFromPath(iconPath);
+function loadTrayIcon(): NativeImage {
+  // macOS wants a 16pt *template* image: a black silhouette plus alpha,
+  // which the system recolours itself for light/dark menu bars (and for
+  // the highlighted state). Anything else — a full-colour badge, or an
+  // oversized PNG — gets scaled into an ugly block in the menu bar.
+  // Windows and Linux have no template concept, so they get the coloured
+  // badge, which stays legible on both light and dark taskbars.
+  const iconName = process.platform === "darwin" ? "trayIconTemplate.png" : "trayIcon.png";
+  const image = nativeImage.createFromPath(path.join(__dirname, "../../assets", iconName));
+
   // Fall back to an empty (but valid) image rather than crash if the icon
   // asset is missing — a tray with a blank icon still works.
-  return image.isEmpty() ? nativeImage.createEmpty() : image;
+  if (image.isEmpty()) return nativeImage.createEmpty();
+
+  if (process.platform === "darwin") image.setTemplateImage(true);
+  return image;
 }
 
 export function createTray(): Tray {
