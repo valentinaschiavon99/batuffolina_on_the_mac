@@ -22,18 +22,26 @@ const VITE_PORT = Number(process.env.VITE_PORT ?? 5173);
 const TIMEOUT_MS = 60_000;
 const POLL_MS = 250;
 
-function portIsOpen(port) {
+// Vite binds to "localhost", which on macOS often means the IPv6 loopback
+// only — a check hard-coded to 127.0.0.1 waits forever while the server is
+// happily serving on ::1. So try both and accept whichever answers.
+const LOOPBACK_HOSTS = ["127.0.0.1", "::1"];
+
+function canConnect(host, port) {
   return new Promise((resolve) => {
-    const socket = net.connect({ port, host: "127.0.0.1" });
-    socket.on("connect", () => {
+    const socket = net.connect({ port, host });
+    const done = (result) => {
       socket.destroy();
-      resolve(true);
-    });
-    socket.on("error", () => {
-      socket.destroy();
-      resolve(false);
-    });
+      resolve(result);
+    };
+    socket.on("connect", () => done(true));
+    socket.on("error", () => done(false));
   });
+}
+
+async function portIsOpen(port) {
+  const results = await Promise.all(LOOPBACK_HOSTS.map((host) => canConnect(host, port)));
+  return results.some(Boolean);
 }
 
 async function waitForReady() {
@@ -56,9 +64,14 @@ if (!ready) {
 }
 
 const electronBin = process.platform === "win32" ? "electron.cmd" : "electron";
-const child = spawn(path.join(projectRoot, "node_modules/.bin", electronBin), ["."], {
-  cwd: projectRoot,
-  stdio: "inherit",
+const electronPath = path.join(projectRoot, "node_modules/.bin", electronBin);
+console.log("[batuffolina] tutto pronto, avvio Electron…");
+
+const child = spawn(electronPath, ["."], { cwd: projectRoot, stdio: "inherit" });
+
+child.on("error", (error) => {
+  console.error(`[batuffolina] impossibile avviare Electron (${electronPath}):`, error.message);
+  process.exit(1);
 });
 
 child.on("exit", (code) => process.exit(code ?? 0));
