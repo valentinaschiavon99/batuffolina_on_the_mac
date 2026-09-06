@@ -86,19 +86,20 @@ export function openPetWindow(pet: PetProfile): void {
     removeListener: (event, listener) => win.removeListener(event, listener),
   };
 
-  const engine = new WalkEngine(
-    engineWindow,
-    () => {
+  const engine = new WalkEngine({
+    window: engineWindow,
+    getWorkArea: () => {
       const [x, y] = win.isDestroyed() ? [startX, startY] : win.getPosition();
       return screen.getDisplayNearestPoint({ x, y }).workArea;
     },
-    width,
-    height,
-    () => getSettings().speed,
-    (activity) => {
+    petWidth: width,
+    petHeight: height,
+    getSpeed: () => getSettings().speed,
+    getActivityLevel: () => getSettings().activityLevel,
+    onActivity: (activity) => {
       if (!win.isDestroyed()) win.webContents.send(IPC.pet.activity, activity);
     },
-  );
+  });
   engine.start();
 
   win.on("closed", () => {

@@ -11,9 +11,10 @@ export function openSettingsWindow(): void {
   }
 
   win = new BrowserWindow({
-    width: 480,
-    height: 560,
-    resizable: false,
+    width: 500,
+    height: 760,
+    resizable: true,
+    minHeight: 420,
     title: "Impostazioni — Batuffolina",
     autoHideMenuBar: true,
     webPreferences: {

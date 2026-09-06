@@ -19,11 +19,21 @@ export interface PetProfile {
 
 export type PetSpeed = "slow" | "normal" | "fast";
 export type PetSize = "small" | "normal" | "large";
+/** How often the pet decides to walk. Orthogonal to speed, which is how fast it walks. */
+export type PetActivityLevel = "lazy" | "normal" | "hyper";
+export type SoundVolume = "soft" | "normal" | "loud";
 
 export interface AppSettings {
   speed: PetSpeed;
   size: PetSize;
+  activityLevel: PetActivityLevel;
+  /** When false the pet never falls asleep, however long it has been still. */
+  napEnabled: boolean;
+  /** 100 = fully opaque. Lower values let windows underneath show through. */
+  opacityPercent: number;
+  shadowEnabled: boolean;
   soundEnabled: boolean;
+  soundVolume: SoundVolume;
   launchAtLogin: boolean;
   /** Keep the pet visible above fullscreen apps too (macOS/Windows). */
   stayOnTopOfFullscreen: boolean;
@@ -32,7 +42,12 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   speed: "normal",
   size: "normal",
+  activityLevel: "normal",
+  napEnabled: true,
+  opacityPercent: 100,
+  shadowEnabled: true,
   soundEnabled: true,
+  soundVolume: "normal",
   launchAtLogin: false,
   stayOnTopOfFullscreen: false,
 };

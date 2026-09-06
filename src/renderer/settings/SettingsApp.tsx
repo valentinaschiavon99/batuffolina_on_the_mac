@@ -23,9 +23,13 @@ export function SettingsApp(): JSX.Element | null {
     <div className="settings">
       <h1>Impostazioni</h1>
 
+      <h2 className="section-title">Comportamento</h2>
       <section>
         <label className="setting-row">
-          <span>Velocità di camminata</span>
+          <span>
+            Velocità di camminata
+            <small>Quanto va veloce quando si muove</small>
+          </span>
           <select
             value={settings.speed}
             onChange={(e) => update({ speed: e.target.value as AppSettings["speed"] })}
@@ -36,6 +40,38 @@ export function SettingsApp(): JSX.Element | null {
           </select>
         </label>
 
+        <label className="setting-row">
+          <span>
+            Livello di attività
+            <small>Quanto spesso si alza a fare un giro</small>
+          </span>
+          <select
+            value={settings.activityLevel}
+            onChange={(e) =>
+              update({ activityLevel: e.target.value as AppSettings["activityLevel"] })
+            }
+          >
+            <option value="lazy">Pigro</option>
+            <option value="normal">Normale</option>
+            <option value="hyper">Iperattivo</option>
+          </select>
+        </label>
+
+        <label className="setting-row checkbox-row">
+          <span>
+            Sonnellino quando è fermo
+            <small>Dopo un po' di inattività si addormenta</small>
+          </span>
+          <input
+            type="checkbox"
+            checked={settings.napEnabled}
+            onChange={(e) => update({ napEnabled: e.target.checked })}
+          />
+        </label>
+      </section>
+
+      <h2 className="section-title">Aspetto</h2>
+      <section>
         <label className="setting-row">
           <span>Dimensione</span>
           <select
@@ -48,6 +84,34 @@ export function SettingsApp(): JSX.Element | null {
           </select>
         </label>
 
+        <label className="setting-row">
+          <span>
+            Opacità
+            <small>Più bassa, più si intravede cosa c'è sotto</small>
+          </span>
+          <select
+            value={String(settings.opacityPercent)}
+            onChange={(e) => update({ opacityPercent: Number(e.target.value) })}
+          >
+            <option value="100">100%</option>
+            <option value="80">80%</option>
+            <option value="60">60%</option>
+            <option value="40">40%</option>
+          </select>
+        </label>
+
+        <label className="setting-row checkbox-row">
+          <span>Ombra sotto il pet</span>
+          <input
+            type="checkbox"
+            checked={settings.shadowEnabled}
+            onChange={(e) => update({ shadowEnabled: e.target.checked })}
+          />
+        </label>
+      </section>
+
+      <h2 className="section-title">Suoni</h2>
+      <section>
         <label className="setting-row checkbox-row">
           <span>Suoni quando lo coccoli</span>
           <input
@@ -57,6 +121,24 @@ export function SettingsApp(): JSX.Element | null {
           />
         </label>
 
+        <label className={`setting-row ${settings.soundEnabled ? "" : "disabled"}`}>
+          <span>Volume</span>
+          <select
+            value={settings.soundVolume}
+            disabled={!settings.soundEnabled}
+            onChange={(e) =>
+              update({ soundVolume: e.target.value as AppSettings["soundVolume"] })
+            }
+          >
+            <option value="soft">Sussurro</option>
+            <option value="normal">Normale</option>
+            <option value="loud">Squillante</option>
+          </select>
+        </label>
+      </section>
+
+      <h2 className="section-title">Sistema</h2>
+      <section>
         <label className="setting-row checkbox-row">
           <span>Resta visibile sopra le app a schermo intero</span>
           <input

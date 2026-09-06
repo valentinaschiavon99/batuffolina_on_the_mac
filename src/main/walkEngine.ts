@@ -1,4 +1,4 @@
-import type { PetActivity, PetSpeed } from "../shared/types";
+import type { PetActivity, PetActivityLevel, PetSpeed } from "../shared/types";
 
 /**
  * The minimal window surface WalkEngine needs. Real code passes it an
@@ -22,14 +22,30 @@ export interface WorkArea {
 
 const TICK_MS = 33; // ~30fps — plenty smooth for a window-position walk cycle
 const MANUAL_COOLDOWN_MS = 1500; // pause autonomy for a bit after the user drags the pet
-const MIN_IDLE_MS = 1200;
-const MAX_IDLE_MS = 5500;
 
 const SPEED_PX_PER_SEC: Record<PetSpeed, number> = {
   slow: 40,
   normal: 70,
   fast: 110,
 };
+
+/** How long the pet rests between walks, per activity level: [min, max] ms. */
+const IDLE_RANGE_MS: Record<PetActivityLevel, [number, number]> = {
+  lazy: [4000, 15000],
+  normal: [1200, 5500],
+  hyper: [400, 2000],
+};
+
+export interface WalkEngineOptions {
+  window: EngineWindow;
+  getWorkArea: () => WorkArea;
+  petWidth: number;
+  petHeight: number;
+  /** Read live on every tick, so settings changes apply without restarting. */
+  getSpeed: () => PetSpeed;
+  getActivityLevel: () => PetActivityLevel;
+  onActivity: (activity: PetActivity) => void;
+}
 
 /**
  * Owns one pet's on-screen position. It walks the window back and forth
@@ -49,19 +65,15 @@ export class WalkEngine {
   private timer: ReturnType<typeof setInterval> | undefined;
   private lastActivitySent: PetActivity | undefined;
   private readonly onMoved = () => this.handleWindowMoved();
+  private readonly win: EngineWindow;
 
-  constructor(
-    private win: EngineWindow,
-    private getWorkArea: () => WorkArea,
-    private petWidth: number,
-    private petHeight: number,
-    private getSpeed: () => PetSpeed,
-    private onActivity: (activity: PetActivity) => void,
-  ) {}
+  constructor(private readonly options: WalkEngineOptions) {
+    this.win = options.window;
+  }
 
   start(): void {
     this.win.on("moved", this.onMoved);
-    this.pickNewIdle(MIN_IDLE_MS, MAX_IDLE_MS);
+    this.pickNewIdle();
     this.timer = setInterval(() => this.tick(), TICK_MS);
   }
 
@@ -87,19 +99,20 @@ export class WalkEngine {
     this.setActivity({ kind: "idle" });
   }
 
-  private pickNewIdle(minMs: number, maxMs: number): void {
+  private pickNewIdle(): void {
+    const [minMs, maxMs] = IDLE_RANGE_MS[this.options.getActivityLevel()];
     this.state = "idle";
     this.idleUntil = Date.now() + minMs + Math.random() * (maxMs - minMs);
     this.setActivity({ kind: "idle" });
   }
 
   private pickNewWalkTarget(): void {
-    const area = this.getWorkArea();
+    const area = this.options.getWorkArea();
     const minX = area.x;
-    const maxX = area.x + area.width - this.petWidth;
+    const maxX = area.x + area.width - this.options.petWidth;
     if (maxX <= minX) {
       // Display too narrow for the pet (unlikely) — just stay idle.
-      this.pickNewIdle(MIN_IDLE_MS, MAX_IDLE_MS);
+      this.pickNewIdle();
       return;
     }
     this.targetX = minX + Math.random() * (maxX - minX);
@@ -118,7 +131,7 @@ export class WalkEngine {
         this.lastActivitySent.direction !== activity.direction);
     if (!changed) return;
     this.lastActivitySent = activity;
-    this.onActivity(activity);
+    this.options.onActivity(activity);
   }
 
   private moveWindowTo(x: number, y: number): void {
@@ -141,8 +154,8 @@ export class WalkEngine {
       return; // the user just picked the pet up — leave it be
     }
 
-    const area = this.getWorkArea();
-    const floorY = area.y + area.height - this.petHeight;
+    const area = this.options.getWorkArea();
+    const floorY = area.y + area.height - this.options.petHeight;
     const [x] = this.win.getPosition();
 
     if (this.state === "idle") {
@@ -153,7 +166,7 @@ export class WalkEngine {
     }
 
     // Walking: step toward targetX at the configured speed.
-    const speed = SPEED_PX_PER_SEC[this.getSpeed()];
+    const speed = SPEED_PX_PER_SEC[this.options.getSpeed()];
     const stepPx = (speed * TICK_MS) / 1000;
     const remaining = this.targetX - x;
     const arrived = Math.abs(remaining) <= stepPx;
@@ -161,7 +174,7 @@ export class WalkEngine {
     this.moveWindowTo(nextX, floorY);
 
     if (arrived) {
-      this.pickNewIdle(MIN_IDLE_MS, MAX_IDLE_MS);
+      this.pickNewIdle();
     }
   }
 }

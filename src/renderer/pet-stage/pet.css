@@ -63,6 +63,14 @@ body {
   filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.28)) brightness(0.88);
 }
 
+/* Shadow turned off in the settings: keep the sleeping dim, drop the shadow. */
+.pet-image.no-shadow {
+  filter: none;
+}
+.pet-image.state-sleeping.no-shadow {
+  filter: brightness(0.88);
+}
+
 .pet-image.poked {
   animation: batuffolina-poke 0.35s ease-out;
 }

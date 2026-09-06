@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { WalkEngine, type EngineWindow, type WorkArea } from "./walkEngine";
-import type { PetActivity, PetSpeed } from "../shared/types";
+import type { PetActivity, PetActivityLevel, PetSpeed } from "../shared/types";
 
 class FakeWindow implements EngineWindow {
   private x: number;
@@ -55,8 +55,17 @@ function createEngine(
   win: FakeWindow,
   speed: PetSpeed,
   onActivity: (a: PetActivity) => void,
+  activityLevel: PetActivityLevel = "normal",
 ): WalkEngine {
-  return new WalkEngine(win, () => WORK_AREA, PET_WIDTH, PET_HEIGHT, () => speed, onActivity);
+  return new WalkEngine({
+    window: win,
+    getWorkArea: () => WORK_AREA,
+    petWidth: PET_WIDTH,
+    petHeight: PET_HEIGHT,
+    getSpeed: () => speed,
+    getActivityLevel: () => activityLevel,
+    onActivity,
+  });
 }
 
 describe("WalkEngine", () => {
@@ -95,6 +104,28 @@ describe("WalkEngine", () => {
     expect(x).toBeGreaterThanOrEqual(WORK_AREA.x);
     expect(x).toBeLessThanOrEqual(WORK_AREA.x + WORK_AREA.width - PET_WIDTH);
     engine.stop();
+  });
+
+  it("respects the activity level when deciding how long to rest", () => {
+    const lazyWin = new FakeWindow(500, 700);
+    const lazyActivities: PetActivity[] = [];
+    const lazy = createEngine(lazyWin, "normal", (a) => lazyActivities.push(a), "lazy");
+
+    const hyperWin = new FakeWindow(500, 700);
+    const hyperActivities: PetActivity[] = [];
+    const hyper = createEngine(hyperWin, "normal", (a) => hyperActivities.push(a), "hyper");
+
+    lazy.start();
+    hyper.start();
+    // A lazy pet rests 4-15s between walks, a hyper one 0.4-2s: after three
+    // seconds the first must still be resting and the second must have moved.
+    vi.advanceTimersByTime(3000);
+
+    expect(lazyActivities.some((a) => a.kind === "walking")).toBe(false);
+    expect(hyperActivities.some((a) => a.kind === "walking")).toBe(true);
+
+    lazy.stop();
+    hyper.stop();
   });
 
   it("keeps the pet on the floor line of the work area while walking", () => {
