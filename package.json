@@ -9,10 +9,11 @@
   "main": "dist/main/main.js",
   "type": "commonjs",
   "scripts": {
-    "dev": "concurrently -k -n RENDERER,MAIN,PRELOAD -c blue,green,yellow \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:preload\"",
+    "dev": "concurrently -k -n RENDERER,MAIN,PRELOAD,ELECTRON -c blue,green,yellow,magenta \"npm:dev:renderer\" \"npm:dev:main\" \"npm:dev:preload\" \"npm:dev:electron\"",
     "dev:renderer": "vite",
     "dev:main": "tsc -p tsconfig.main.json -w --preserveWatchOutput",
     "dev:preload": "npm run build:preload -- --watch",
+    "dev:electron": "node scripts/dev-launch-electron.mjs",
     "build": "npm run build:renderer && npm run build:main && npm run build:preload",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.main.json",

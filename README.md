@@ -59,6 +59,40 @@ npm run package:win  # installer NSIS + versione portable
 npm run package:linux # AppImage + .deb
 ```
 
+## Se `npm install` non riesce a scaricare Electron
+
+Su alcune reti (universitarie, aziendali, con proxy o firewall che filtrano i download
+grandi) il post-install di Electron fallisce **in silenzio**: `npm install` termina in pochi
+secondi senza errori, ma poi ogni avvio muore con
+`Electron failed to install correctly`. Il sintomo diagnostico è
+`node_modules/electron/dist/Electron.app/Contents/` senza la cartella `Frameworks` (che è la
+parte da ~100 MB) e l'assenza di `node_modules/electron/path.txt`.
+
+Soluzione: scaricare lo zip a mano dal browser e installarlo al posto giusto. Su macOS Apple
+Silicon, con la versione di Electron indicata in `package.json` (qui `v33.4.11`):
+
+1. Scarica
+   `https://github.com/electron/electron/releases/download/v33.4.11/electron-v33.4.11-darwin-arm64.zip`
+   (verifica che pesi ~95 MB: se pesa pochi KB, la rete lo sta troncando).
+2. Poi, da terminale:
+
+```bash
+cd ~/Downloads
+xattr -cr electron-v33.4.11-darwin-arm64.zip
+rm -rf electron-manual && mkdir electron-manual
+unzip -q electron-v33.4.11-darwin-arm64.zip -d electron-manual
+xattr -cr electron-manual
+cd /percorso/del/progetto
+rm -rf node_modules/electron/dist
+cp -R ~/Downloads/electron-manual node_modules/electron/dist
+printf 'Electron.app/Contents/MacOS/Electron' > node_modules/electron/path.txt
+```
+
+Il passaggio `xattr -cr` non è opzionale: i file scaricati dal browser portano il flag
+`com.apple.quarantine`, e Gatekeeper uccide l'app all'avvio con un SIGKILL (arrivando anche a
+rimuovere il bundle `.app` estratto). `printf` invece di `echo` perché `path.txt` non deve
+contenere il newline finale.
+
 ## Struttura del progetto
 
 ```

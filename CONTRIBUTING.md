@@ -9,9 +9,16 @@ npm install
 npm run dev
 ```
 
-Questo avvia in parallelo il dev server di Vite (renderer), `tsc --watch` (processo main) ed
-esbuild in watch mode (preload). Elettron va riavviato manualmente dopo modifiche al processo
-main (`Ctrl+C` e `npm run dev` di nuovo), mentre il renderer si aggiorna da solo via HMR.
+Questo avvia in parallelo quattro processi: il dev server di Vite (renderer), `tsc --watch`
+(processo main), esbuild in watch mode (preload) e infine Electron, che parte da solo appena i
+bundle compilati e il dev server sono pronti (vedi `scripts/dev-launch-electron.mjs`).
+
+Il renderer si aggiorna da solo via HMR; dopo modifiche al processo main o al preload va
+riavviato tutto (`Ctrl+C` e di nuovo `npm run dev`).
+
+Se `npm install` non riesce a scaricare il binario di Electron — tipico su reti con proxy o
+firewall che filtrano i download grandi — vedi la sezione dedicata nel
+[README](./README.md#se-npm-install-non-riesce-a-scaricare-electron).
 
 ## Prima di aprire una PR
 
