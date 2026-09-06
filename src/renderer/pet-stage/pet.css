@@ -1,0 +1,171 @@
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  overflow: hidden;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+}
+
+.pet-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  /* Lets the OS window-manager drag the (frameless) window when the user
+     grabs the pet — no custom drag IPC needed. */
+  -webkit-app-region: drag;
+  cursor: grab;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.pet-stage:active {
+  cursor: grabbing;
+}
+
+.pet-flip {
+  width: 100%;
+  height: 100%;
+  transition: transform 0.15s ease-out;
+}
+
+.pet-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.28));
+  transform-origin: 50% 100%;
+}
+
+.pet-image.state-idle {
+  animation: batuffolina-breathe 2.6s ease-in-out infinite;
+}
+
+.pet-image.state-walking {
+  animation: batuffolina-walk 0.5s ease-in-out infinite;
+}
+
+.pet-image.state-sitting {
+  animation: batuffolina-breathe 3.4s ease-in-out infinite;
+  transform: scale(0.96) translateY(2%);
+}
+
+.pet-image.state-sleeping {
+  animation: batuffolina-sleep 4s ease-in-out infinite;
+  filter: drop-shadow(0 8px 6px rgba(0, 0, 0, 0.28)) brightness(0.88);
+}
+
+.pet-image.poked {
+  animation: batuffolina-poke 0.35s ease-out;
+}
+
+@keyframes batuffolina-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015, 0.985);
+  }
+}
+
+@keyframes batuffolina-walk {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  25% {
+    transform: translateY(-3%) scale(0.985, 1.015);
+  }
+  50% {
+    transform: translateY(0) scale(1.02, 0.98);
+  }
+  75% {
+    transform: translateY(-3%) scale(0.985, 1.015);
+  }
+}
+
+@keyframes batuffolina-sleep {
+  0%,
+  100% {
+    transform: scale(0.94, 0.9) translateY(3%);
+  }
+  50% {
+    transform: scale(0.955, 0.885) translateY(2.5%);
+  }
+}
+
+@keyframes batuffolina-poke {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.88, 1.12);
+  }
+  65% {
+    transform: scale(1.08, 0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.zzz {
+  position: absolute;
+  top: 2%;
+  right: 8%;
+  font-size: 18px;
+  opacity: 0;
+  pointer-events: none;
+  animation: batuffolina-zzz 3.2s ease-in infinite;
+}
+
+@keyframes batuffolina-zzz {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.6);
+  }
+  20% {
+    opacity: 0.9;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-28px) scale(1.1);
+  }
+}
+
+.heart-burst {
+  position: absolute;
+  left: 50%;
+  top: 20%;
+  font-size: 20px;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+  animation: batuffolina-heart 0.9s ease-out forwards;
+}
+
+@keyframes batuffolina-heart {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.5);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -44px) scale(1);
+  }
+}
