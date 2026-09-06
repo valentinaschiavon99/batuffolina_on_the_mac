@@ -4,6 +4,10 @@ import { registerIpcHandlers } from "./ipcHandlers";
 import { listPets } from "./store";
 import { openPetWindow } from "./petWindowManager";
 import { openOnboardingWindow } from "./onboardingWindow";
+import { registerPetSchemePrivileges, registerPetProtocolHandler } from "./petProtocol";
+
+// Privileged schemes must be declared before the app is ready.
+registerPetSchemePrivileges();
 
 // Batuffolina is a tray-only app: a second launch should just hand off to
 // the already-running instance instead of spawning duplicate pet windows.
@@ -21,6 +25,7 @@ if (!gotSingleInstanceLock) {
       app.dock?.hide();
     }
 
+    registerPetProtocolHandler();
     registerIpcHandlers();
     createTray();
 

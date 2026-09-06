@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PetActivity, PetProfile } from "../../shared/types";
+import { petImageUrl } from "../../shared/petImage";
 import { playPokeChime } from "./sound";
 
 const SIT_AFTER_MS = 7000;
@@ -117,7 +118,7 @@ export function PetStageApp(): JSX.Element | null {
     <div className="pet-stage" onClick={handlePoke} title={pet.name}>
       <div className="pet-flip" style={{ transform: facingLeft ? "scaleX(-1)" : "scaleX(1)" }}>
         <img
-          src={`file://${pet.imagePath}`}
+          src={petImageUrl(pet.id)}
           alt={pet.name}
           className={classNames}
           draggable={false}
